@@ -1,0 +1,6 @@
+elasticsearch:
+  enabled: true
+  hostName: localhost
+  port: 9200
+  userName: elastic
+  password: elastic2020!
