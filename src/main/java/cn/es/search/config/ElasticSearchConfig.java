@@ -30,21 +30,14 @@ public class ElasticSearchConfig {
     private String hostName;
     @Value("${elasticsearch.port}")
     private Integer port;
-    @Value("${elasticsearch.username}")
-    private String userName;
-    @Value("${elasticsearch.password}")
-    private String password;
 
     @Bean
     @Qualifier("restHighLevelClient")
     public RestHighLevelClient initRestHighLevelClient() {
-        log.info("实例化ElasticSearch客户端-{}-{}-{}", hostName, port, userName);
+        log.info("实例化ElasticSearch客户端-{}-{}", hostName, port);
         // 实例化客户端
-        HttpHost httpHost = new HttpHost(hostName, port, "https");
+        HttpHost httpHost = new HttpHost(hostName, port);
         RestClientBuilder builder = RestClient.builder(httpHost);
-        CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(userName, password));
-        builder.setHttpClientConfigCallback(f -> f.setDefaultCredentialsProvider(credentialsProvider));
         return new RestHighLevelClient(builder);
     }
 }

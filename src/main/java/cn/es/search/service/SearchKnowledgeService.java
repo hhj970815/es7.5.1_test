@@ -15,6 +15,11 @@ import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.suggest.Suggest;
+import org.elasticsearch.search.suggest.SuggestBuilder;
+import org.elasticsearch.search.suggest.SuggestBuilders;
+import org.elasticsearch.search.suggest.term.TermSuggestion;
+import org.elasticsearch.search.suggest.term.TermSuggestionBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -40,6 +45,48 @@ public class SearchKnowledgeService {
     @Qualifier("restHighLevelClient")
     @Autowired
     private RestHighLevelClient restHighLevelClient;
+
+    /**
+     * 建议请求
+     *
+     * @param keyWord
+     * @return
+     */
+    public List<String> getSuggestWord(String keyWord) {
+        List<String> suggestKw = new ArrayList<>();
+        SearchRequest searchRequest = new SearchRequest("knowledge_ware");
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        TermSuggestionBuilder term = SuggestBuilders.termSuggestion("name").text(keyWord);
+        SuggestBuilder suggestBuilder = new SuggestBuilder();
+        // 添加建议生成器并命名
+        suggestBuilder.addSuggestion("suggest_ware", term);
+        // 将suggestBuilder添加到searchSourceBuilder
+        searchSourceBuilder.suggest(suggestBuilder);
+        // 执行搜索
+        searchRequest.source(searchSourceBuilder);
+
+        SearchResponse search = null;
+        try {
+            search = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            log.error(e.getMessage());
+            return new ArrayList<>();
+        }
+
+        // 按suggest搜索结果
+        Suggest suggest = search.getSuggest();
+        // 按content搜索Suggest
+        TermSuggestion termSuggestion = suggest.getSuggestion("name");
+        if (termSuggestion == null) {
+            log.info("查无数据");
+            return new ArrayList<>();
+        }
+        for (TermSuggestion.Entry entry : termSuggestion.getEntries()) {
+            String suggestText = entry.getText().string();
+            suggestKw.add(suggestText);
+        }
+        return suggestKw;
+    }
 
     public ListWareDetailBo searchByKeyWord(SearchWareByKeyWordParam searchWareByKeyWordParam) {
         ListWareDetailBo listWareDetailBo = new ListWareDetailBo();

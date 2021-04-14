@@ -35,4 +35,9 @@ public class SearchKnowledgeController {
         searchWareByKeyWordParam.setPageSize(pageSize);
         return ResponseData.success(searchKnowledgeService.searchByKeyWord(searchWareByKeyWordParam));
     }
+
+    @GetMapping("/kw/{keyword}")
+    public ResponseData<List<String>> getSuggestWord(@PathVariable String keyword) {
+        return ResponseData.success(searchKnowledgeService.getSuggestWord(keyword));
+    }
 }
