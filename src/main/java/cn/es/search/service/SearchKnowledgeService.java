@@ -18,6 +18,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.suggest.Suggest;
 import org.elasticsearch.search.suggest.SuggestBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilders;
+import org.elasticsearch.search.suggest.completion.CompletionSuggestionBuilder;
 import org.elasticsearch.search.suggest.term.TermSuggestion;
 import org.elasticsearch.search.suggest.term.TermSuggestionBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,10 +57,11 @@ public class SearchKnowledgeService {
         List<String> suggestKw = new ArrayList<>();
         SearchRequest searchRequest = new SearchRequest("knowledge_ware");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        TermSuggestionBuilder term = SuggestBuilders.termSuggestion("name").text(keyWord);
+//        TermSuggestionBuilder term = SuggestBuilders.termSuggestion("name").text(keyWord);
+        CompletionSuggestionBuilder completionSuggestionBuilder = SuggestBuilders.completionSuggestion("name.suggest").prefix(keyWord);
         SuggestBuilder suggestBuilder = new SuggestBuilder();
         // 添加建议生成器并命名
-        suggestBuilder.addSuggestion("suggest_ware", term);
+        suggestBuilder.addSuggestion("suggest_ware", completionSuggestionBuilder);
         // 将suggestBuilder添加到searchSourceBuilder
         searchSourceBuilder.suggest(suggestBuilder);
         // 执行搜索
@@ -76,7 +78,7 @@ public class SearchKnowledgeService {
         // 按suggest搜索结果
         Suggest suggest = search.getSuggest();
         // 按content搜索Suggest
-        TermSuggestion termSuggestion = suggest.getSuggestion("name");
+        TermSuggestion termSuggestion = suggest.getSuggestion("name.suggest");
         if (termSuggestion == null) {
             log.info("查无数据");
             return new ArrayList<>();
