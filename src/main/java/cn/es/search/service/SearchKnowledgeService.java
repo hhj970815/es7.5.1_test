@@ -18,6 +18,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.suggest.Suggest;
 import org.elasticsearch.search.suggest.SuggestBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilders;
+import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
 import org.elasticsearch.search.suggest.completion.CompletionSuggestionBuilder;
 import org.elasticsearch.search.suggest.term.TermSuggestion;
 import org.elasticsearch.search.suggest.term.TermSuggestionBuilder;
@@ -78,14 +79,16 @@ public class SearchKnowledgeService {
         // 按suggest搜索结果
         Suggest suggest = search.getSuggest();
         // 按content搜索Suggest
-        TermSuggestion termSuggestion = suggest.getSuggestion("name.suggest");
+        CompletionSuggestion termSuggestion = suggest.getSuggestion("suggest_ware");
         if (termSuggestion == null) {
             log.info("查无数据");
             return new ArrayList<>();
         }
-        for (TermSuggestion.Entry entry : termSuggestion.getEntries()) {
-            String suggestText = entry.getText().string();
-            suggestKw.add(suggestText);
+        for (CompletionSuggestion.Entry entry : termSuggestion.getEntries()) {
+            for (int i = 0; i < entry.getOptions().size(); i++) {
+                String suggestText = entry.getOptions().get(i).getText().string();
+                suggestKw.add(suggestText);
+            }
         }
         return suggestKw;
     }
